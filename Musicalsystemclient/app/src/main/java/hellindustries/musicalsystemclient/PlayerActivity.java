@@ -37,6 +37,7 @@ public class PlayerActivity extends AppCompatActivity {
     private MediaPlayer mediaPlayer;
     private int currentSongIndex = 0;
     private File[] musicFiles;
+    private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,19 +70,6 @@ public class PlayerActivity extends AppCompatActivity {
 
             }
         });
-
-        // For seekbar updates during play
-        final Handler handler = new Handler();
-        PlayerActivity.this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                int currentTime = mediaPlayer.getCurrentPosition();
-                seekbar.setProgress(currentTime);
-                currentTimeTxt.setText(millisToStringTimer(currentTime));
-                handler.postDelayed(this, 1000);
-            }
-        });
-
     }
 
     private void getUIComponents() {
