@@ -14,4 +14,9 @@ public class RequestManager extends NanoHTTPD {
     public RequestManager(String hostname, int port) {
         super(hostname, port);
     }
+
+    @Override
+    public Response serve(IHTTPSession session) {
+        return super.serve(session);
+    }
 }
