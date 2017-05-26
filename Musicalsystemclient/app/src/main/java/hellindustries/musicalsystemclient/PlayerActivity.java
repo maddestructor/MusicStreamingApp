@@ -5,7 +5,6 @@ import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,7 +36,6 @@ public class PlayerActivity extends AppCompatActivity {
     private MediaPlayer mediaPlayer;
     private int currentSongIndex = 0;
     private File[] musicFiles;
-    private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +91,7 @@ public class PlayerActivity extends AppCompatActivity {
         playPauseBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playPause();
+                doHttpGet();
             }
         });
         nextBtn.setOnClickListener(new View.OnClickListener() {
@@ -213,5 +211,10 @@ public class PlayerActivity extends AppCompatActivity {
 
         // Update seekbar
         seekbar.setMax(mediaPlayer.getDuration());
+    }
+
+    private void doHttpGet(){
+        ClientPlayingTask clientPlayingTask = new ClientPlayingTask();
+        clientPlayingTask.execute();
     }
 }
