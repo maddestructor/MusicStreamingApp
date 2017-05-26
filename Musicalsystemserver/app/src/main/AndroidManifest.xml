@@ -23,7 +23,16 @@
         <service
             android:name=".MusicService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".ServerActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="hellindustries.musicalsystemserver.ServerActivity" />
+        </activity>
     </application>
 
 </manifest>

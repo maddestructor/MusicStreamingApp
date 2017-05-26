@@ -11,5 +11,6 @@ public class ServerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_server);
 
         PlayingTask playingTask = new PlayingTask(this);
+        playingTask.execute();
     }
 }
