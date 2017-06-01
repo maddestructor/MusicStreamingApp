@@ -3,11 +3,11 @@ package hellindustries.musicalsystemserver;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.annotation.IntDef;
+
+import java.io.IOException;
 
 public class MusicService extends Service {
 
-    RequestManager requestManager;
     private static final int PORT = 9000;
 
     public MusicService() {
@@ -24,6 +24,11 @@ public class MusicService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         RequestManager requestManager = new RequestManager(PORT);
+        try {
+            requestManager.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
