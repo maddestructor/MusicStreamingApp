@@ -49,7 +49,7 @@ public class PlayerActivity extends AppCompatActivity {
         musicFiles = new File(Environment.getExternalStorageDirectory().getPath() + "/Music/").listFiles();
 
         // Initiate MediaPlayer
-        prepareMediaPlayer();
+//        prepareMediaPlayer();
 
         // Seek song when we move seekbar
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -150,7 +150,7 @@ public class PlayerActivity extends AppCompatActivity {
         else
             currentSongIndex = 0;
 
-        prepareMediaPlayer();
+//        prepareMediaPlayer();
         playPause();
     }
 
@@ -163,7 +163,7 @@ public class PlayerActivity extends AppCompatActivity {
         else
             currentSongIndex = musicFiles.length - 1;
 
-        prepareMediaPlayer();
+//        prepareMediaPlayer();
         playPause();
     }
 

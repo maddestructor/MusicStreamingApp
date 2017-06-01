@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import cz.msebera.android.httpclient.client.ClientProtocolException;
 import cz.msebera.android.httpclient.client.methods.CloseableHttpResponse;
 import cz.msebera.android.httpclient.client.methods.HttpGet;
+import cz.msebera.android.httpclient.client.utils.URIBuilder;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
 
@@ -17,12 +18,17 @@ import cz.msebera.android.httpclient.impl.client.HttpClients;
  */
 
 public class ClientPlayingTask extends AsyncTask {
+
+    public final static String PLAY_COMMAND = "play";
     @Override
     protected Object doInBackground(Object[] params) {
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
-            URI uri = new URI("http://192.168.43.244:9000");
-            HttpGet get = new HttpGet(uri);
+//
+            URIBuilder uriBuilder = new URIBuilder("http://192.168.43.1:9000");
+            uriBuilder.setParameter("commandType", PLAY_COMMAND);
+            HttpGet get = new HttpGet(uriBuilder.build());
+
             CloseableHttpResponse response = httpClient.execute(get);
         } catch (URISyntaxException e) {
             e.printStackTrace();
