@@ -1,21 +1,18 @@
 package hellindustries.musicalsystemclient;
 
-import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.io.File;
-import java.io.IOException;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
 import java.util.concurrent.TimeUnit;
+
+import cz.msebera.android.httpclient.Header;
 
 public class PlayerActivity extends AppCompatActivity {
 
@@ -33,9 +30,8 @@ public class PlayerActivity extends AppCompatActivity {
     TextView songTimeTxt;
     TextView currentTimeTxt;
 
-    private MediaPlayer mediaPlayer;
-    private int currentSongIndex = 0;
-    private File[] musicFiles;
+    AsyncHttpClient asyncHttpClient;
+    private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,17 +41,13 @@ public class PlayerActivity extends AppCompatActivity {
         getUIComponents();
         setOnClickListeners();
 
-        // Initiate songs list
-        musicFiles = new File(Environment.getExternalStorageDirectory().getPath() + "/Music/").listFiles();
-
-        // Initiate MediaPlayer
-//        prepareMediaPlayer();
+        asyncHttpClient = new AsyncHttpClient();
 
         // Seek song when we move seekbar
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mediaPlayer.seekTo(progress);
+
             }
 
             @Override
@@ -91,7 +83,7 @@ public class PlayerActivity extends AppCompatActivity {
         playPauseBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                doHttpGet();
+                doPlayPause();
             }
         });
         nextBtn.setOnClickListener(new View.OnClickListener() {
@@ -127,47 +119,6 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     /**
-     * Method that do play or do pause
-     */
-    private void playPause(){
-        Log.d("CLICK", "playPauseBtn clicked");
-
-        if(!mediaPlayer.isPlaying()){
-            mediaPlayer.start();
-            playPauseBtn.setImageResource(R.drawable.ic_pause_black_24dp);
-        } else {
-            mediaPlayer.pause();
-            playPauseBtn.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-        }
-    }
-
-    /**
-     * Method to go to the next song
-     */
-    private void doNext(){
-        if(currentSongIndex < musicFiles.length - 1)
-            currentSongIndex++;
-        else
-            currentSongIndex = 0;
-
-//        prepareMediaPlayer();
-        playPause();
-    }
-
-    /**
-     * Method to go to the previous song
-     */
-    private void doPrevious(){
-        if(currentSongIndex > 1)
-            currentSongIndex --;
-        else
-            currentSongIndex = musicFiles.length - 1;
-
-//        prepareMediaPlayer();
-        playPause();
-    }
-
-    /**
      * Method that format timers
      * @param millis the time in milliseconds to format
      * @return a formatted string
@@ -179,42 +130,53 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     /**
-     * Method that prepares a new mediaplayer with current song (with index)
-     * and updates song infos
+     * Method that do play or do pause
      */
-    private void prepareMediaPlayer(){
-        if(mediaPlayer != null){
-            mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
+    private void doPlayPause(){
+        asyncHttpClient.get(BASIC_GET_URI + "playpause", new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        Uri uri = Uri.parse(musicFiles[currentSongIndex].getPath());
-        try {
-            mediaPlayer.setDataSource(getBaseContext(), uri);
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            }
 
-        // Update song info band
-        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-        mediaMetadataRetriever.setDataSource(getBaseContext(), uri);
-        songNameTxt.setText(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
-        artistTxt.setText(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
 
-        // Update time
-        int time = mediaPlayer.getDuration();
-        songTimeTxt.setText(millisToStringTimer(time));
-
-        // Update seekbar
-        seekbar.setMax(mediaPlayer.getDuration());
+            }
+        });
     }
 
-    private void doHttpGet(){
-        ClientPlayingTask clientPlayingTask = new ClientPlayingTask();
-        clientPlayingTask.execute();
+    /**
+     * Method to go to the previous song
+     */
+    private void doPrevious(){
+        asyncHttpClient.get(BASIC_GET_URI + "previous", new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+
+            }
+        });
+    }
+
+    /**
+     * Method to go to the next song
+     */
+    public void doNext(){
+        asyncHttpClient.get(BASIC_GET_URI + "next", new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+
+            }
+        });
     }
 }
