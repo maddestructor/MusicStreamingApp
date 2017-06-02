@@ -7,8 +7,12 @@ import fi.iki.elonen.NanoHTTPD;
  */
 
 public class RequestManager extends NanoHTTPD {
-    public RequestManager(int port) {
+
+    private MusicService service;
+
+    public RequestManager(int port, MusicService service) {
         super(port);
+        this.service = service;
     }
 
     public RequestManager(String hostname, int port) {
@@ -17,6 +21,18 @@ public class RequestManager extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
+        switch (session.getUri()){
+            case "/playpause":
+                this.service.playPause();
+                break;
+            case "/previous":
+                this.service.doPrevious();
+                break;
+            case "/next":
+                this.service.doNext();
+                break;
+        }
+
         return super.serve(session);
     }
 }
