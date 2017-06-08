@@ -16,6 +16,7 @@ public class MusicService extends Service {
 
     private static final int PORT = 9000;
     private MediaPlayer mediaPlayer;
+    private Boolean isStreaming = false;
     private File[] musicFiles;
     private int currentSongIndex = 0;
 
@@ -109,5 +110,17 @@ public class MusicService extends Service {
 
         prepareMediaPlayer();
         playPause();
+    }
+
+    public void sendSongList() {
+    }
+
+    public void sendCurrentSong() {
+    }
+
+    public void sendSongByID(int id) {
+    }
+
+    public void startSongFromTime(int time) {
     }
 }

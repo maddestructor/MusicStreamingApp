@@ -1,6 +1,8 @@
 package hellindustries.musicalsystemserver;
 
 import fi.iki.elonen.NanoHTTPD;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Jonathan on 2017-05-25.
@@ -21,18 +23,55 @@ public class RequestManager extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
-        switch (session.getUri()){
-            case "/playpause":
-                this.service.playPause();
-                break;
-            case "/previous":
-                this.service.doPrevious();
-                break;
-            case "/next":
-                this.service.doNext();
-                break;
+        String uri = session.getUri();
+
+        if(uri.equalsIgnoreCase("/playpause")){
+
+            this.service.playPause();
+
+        } else if (uri.equalsIgnoreCase("/previous")){
+
+            this.service.doPrevious();
+
+        } else if (uri.equalsIgnoreCase("/next")){
+
+            this.service.doNext();
+
+        } else if (uri.equalsIgnoreCase("/currentsong")){
+
+            this.service.sendCurrentSong();
+
+        } else if (uri.toLowerCase().contains("songlist")){
+
+            Matcher m = regexMatcher("^\\/songlist\\/+(\\d{1,4})$", uri);
+
+            if(m.find()){
+                this.service.sendSongByID(Integer.parseInt(m.group(1)));
+            } else if (uri.equalsIgnoreCase("/songlist")){
+                this.service.sendSongList();
+            } else {
+                //should return an http error
+            }
+
+        } else if (uri.toLowerCase().contains("seekto")){
+
+            Matcher m = regexMatcher("^\\/seekto\\/+(\\d{1,3})$", uri);
+
+            if(m.find()){
+                this.service.startSongFromTime(Integer.parseInt(m.group(1)));
+            } else {
+                //should return an http error
+            }
+
         }
 
         return super.serve(session);
+    }
+
+    private Matcher regexMatcher(String pattern, String toParse){
+        Pattern p = Pattern.compile(pattern);
+        Matcher m = p.matcher(toParse);
+
+        return m;
     }
 }
