@@ -1,5 +1,8 @@
 package hellindustries.musicalsystemserver;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import fi.iki.elonen.NanoHTTPD;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,7 +51,9 @@ public class RequestManager extends NanoHTTPD {
             if(m.find()){
                 this.service.sendSongByID(Integer.parseInt(m.group(1)));
             } else if (uri.equalsIgnoreCase("/songlist")){
-                this.service.sendSongList();
+                Gson gson = new GsonBuilder().create();
+                String json = gson.toJson(this.service.getSongList());
+                return new Response(Response.Status.OK, "application/json", json);
             } else {
                 //should return an http error
             }

@@ -11,6 +11,7 @@ import android.os.IBinder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MusicService extends Service {
 
@@ -112,7 +113,28 @@ public class MusicService extends Service {
         playPause();
     }
 
-    public void sendSongList() {
+    public ArrayList<Song> getSongList() {
+        ArrayList<Song> songs = new ArrayList<>();
+        for(int i = 0; i < musicFiles.length; i++){
+
+            // Get song infos
+            Uri uri = Uri.parse(musicFiles[i].getPath());
+            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+            mediaMetadataRetriever.setDataSource(getBaseContext(), uri);
+
+            // Create Song object
+            Song song = new Song();
+            song.setId(i + "");
+            song.setTitle(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
+            song.setArtist(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
+            song.setAlbum(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));
+            song.setDuration(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+
+            // Add song to list
+            songs.add(song);
+
+        }
+        return songs;
     }
 
     public void sendCurrentSong() {
