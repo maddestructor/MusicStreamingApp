@@ -2,13 +2,22 @@ package hellindustries.musicalsystemclient;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +40,9 @@ public class PlayerActivity extends AppCompatActivity {
     TextView currentTimeTxt;
 
     AsyncHttpClient asyncHttpClient;
+
+    private ArrayList<Song> songs;
+
     private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
 
     @Override
@@ -42,6 +54,10 @@ public class PlayerActivity extends AppCompatActivity {
         setOnClickListeners();
 
         asyncHttpClient = new AsyncHttpClient();
+
+        // Get songs list from server
+        songs = new ArrayList<>();
+        this.getSongs();
 
         // Seek song when we move seekbar
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -127,6 +143,28 @@ public class PlayerActivity extends AppCompatActivity {
         int minutes = (int) TimeUnit.MILLISECONDS.toMinutes(millis);
         int seconds = (int) (TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes));
         return String.format("%d:%02d", minutes, seconds);
+    }
+
+
+    private void getSongs(){
+        asyncHttpClient.get(BASIC_GET_URI + "songList", new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                for(int i = 0; i < response.length(); i++){
+                    try {
+                        Song song = new Gson().fromJson(response.getString(i), Song.class);
+                        songs.add(song);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+            }
+        });
     }
 
     /**
