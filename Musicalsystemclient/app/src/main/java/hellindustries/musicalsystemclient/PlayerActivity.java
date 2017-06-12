@@ -43,6 +43,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     private ArrayList<Song> songs;
     private int currentSongIndex = 0;
+    private boolean isPlaying = false;
 
     private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
 
@@ -172,14 +173,18 @@ public class PlayerActivity extends AppCompatActivity {
      * Method that do play or do pause
      */
     private void doPlayPause(){
-        asyncHttpClient.get(BASIC_GET_URI + "playpause", new AsyncHttpResponseHandler() {
+        asyncHttpClient.get(BASIC_GET_URI + "playpause", new JsonHttpResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+                isPlaying = !isPlaying;
+                updatePlayPauseBtn();
 
+                Song song = new Gson().fromJson(responseBody.toString(), Song.class);
+                updateSongInfos(song);
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
 
             }
         });
@@ -214,7 +219,11 @@ public class PlayerActivity extends AppCompatActivity {
         asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+                isPlaying = !isPlaying;
+                updatePlayPauseBtn();
 
+                Song song = new Gson().fromJson(responseBody.toString(), Song.class);
+                updateSongInfos(song);
             }
 
             @Override
@@ -222,5 +231,18 @@ public class PlayerActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void updateSongInfos(Song song){
+        this.songNameTxt.setText(song.getTitle());
+        this.artistTxt.setText(song.getArtist());
+        this.songTimeTxt.setText(this.millisToStringTimer(Integer.parseInt(song.getDuration())));
+    }
+
+    private void updatePlayPauseBtn(){
+        if(isPlaying)
+            playPauseBtn.setImageResource(R.drawable.ic_pause_black_24dp);
+        else
+            playPauseBtn.setImageResource(R.drawable.ic_play_arrow_black_24dp);
     }
 }
