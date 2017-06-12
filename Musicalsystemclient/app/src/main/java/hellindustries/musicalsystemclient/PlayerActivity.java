@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -187,24 +188,39 @@ public class PlayerActivity extends AppCompatActivity {
     /**
      * Method to go to the previous song
      */
-    public void doPrevious(){
+    private void doPrevious(){
         if(currentSongIndex > 1)
             currentSongIndex --;
         else
             currentSongIndex = songs.size() - 1;
 
-        // Todo complete server request
+        startNewSong();
     }
 
     /**
      * Method to go to the next song
      */
-    public void doNext(){
+    private void doNext(){
         if(currentSongIndex < songs.size() - 1)
             currentSongIndex++;
         else
             currentSongIndex = 0;
 
-        // Todo complete server request
+        startNewSong();
+    }
+
+    private void startNewSong(){
+        RequestParams params = new RequestParams("searchByID", currentSongIndex);
+        asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+            }
+        });
     }
 }
