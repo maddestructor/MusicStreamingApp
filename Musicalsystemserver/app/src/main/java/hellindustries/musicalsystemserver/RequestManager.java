@@ -1,5 +1,7 @@
 package hellindustries.musicalsystemserver;
 
+import com.google.gson.Gson;
+
 import fi.iki.elonen.NanoHTTPD;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,11 +25,15 @@ public class RequestManager extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
+
         String uri = session.getUri();
 
         if(uri.equalsIgnoreCase("/playpause")){
 
+            setStreamingType(session.getHeaders().get(0));
             this.service.playPause();
+            Response res = new Response("");
+
 
         } else if (uri.equalsIgnoreCase("/previous")){
 
@@ -73,5 +79,9 @@ public class RequestManager extends NanoHTTPD {
         Matcher m = p.matcher(toParse);
 
         return m;
+    }
+
+    private void setStreamingType(String streamingType){
+
     }
 }

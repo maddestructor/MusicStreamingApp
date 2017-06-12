@@ -1,5 +1,6 @@
 package hellindustries.musicalsystemserver;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -8,6 +9,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +18,7 @@ public class MusicService extends Service {
 
     private static final int PORT = 9000;
     private MediaPlayer mediaPlayer;
+
     private Boolean isStreaming = false;
     private File[] musicFiles;
     private int currentSongIndex = 0;
@@ -122,5 +125,13 @@ public class MusicService extends Service {
     }
 
     public void startSongFromTime(int time) {
+    }
+
+    public Boolean getStreaming() {
+        return isStreaming;
+    }
+
+    public void setStreaming(Boolean streaming) {
+        isStreaming = streaming;
     }
 }
