@@ -1,6 +1,5 @@
 package hellindustries.musicalsystemserver;
 
-import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -9,7 +8,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
-import android.support.v4.app.ActivityCompat;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +20,8 @@ public class MusicService extends Service {
 
     private Boolean isStreaming = false;
     private File[] musicFiles;
-    private int currentSongIndex = 0;
+    private int currentSongId = 0;
+    private Song currentSong;
 
     public MusicService() {
         super();
@@ -31,8 +30,12 @@ public class MusicService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Get songs from Music device folder
         musicFiles = new File(Environment.getExternalStorageDirectory().getPath() + "/Music/").listFiles();
-        prepareMediaPlayer();
+
+        // By default prepare the media player with first song at index 0
+        prepareMediaPlayer(Uri.parse(musicFiles[currentSongId].getPath()));
     }
 
     @Override
@@ -56,7 +59,7 @@ public class MusicService extends Service {
      * Method that prepares a new mediaplayer with current song (with index)
      * and updates song infos
      */
-    private void prepareMediaPlayer(){
+    private void prepareMediaPlayer(Uri uri){
         if(mediaPlayer != null){
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -65,7 +68,6 @@ public class MusicService extends Service {
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        Uri uri = Uri.parse(musicFiles[currentSongIndex].getPath());
         try {
             mediaPlayer.setDataSource(getBaseContext(), uri);
             mediaPlayer.prepare();
@@ -73,9 +75,8 @@ public class MusicService extends Service {
             e.printStackTrace();
         }
 
-        // Update song info band
-        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-        mediaMetadataRetriever.setDataSource(getBaseContext(), uri);
+        // Create song object
+        this.currentSong = this.createSongObject(currentSongId, uri);
     }
 
     /**
@@ -89,28 +90,24 @@ public class MusicService extends Service {
         }
     }
 
-    public void startNewSong(int songId){
-        this.currentSongIndex = songId;
-        this.prepareMediaPlayer();
+    public Song startNewSong(int songId){
+        this.currentSongId = songId;
+        Uri uri = Uri.parse(musicFiles[this.currentSongId].getPath());
+        this.prepareMediaPlayer(uri);
         mediaPlayer.start();
+
+        return currentSong;
     }
 
     public ArrayList<Song> getSongList() {
         ArrayList<Song> songs = new ArrayList<>();
         for(int i = 0; i < musicFiles.length; i++){
 
-            // Get song infos
+            // Get song uri
             Uri uri = Uri.parse(musicFiles[i].getPath());
-            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-            mediaMetadataRetriever.setDataSource(getBaseContext(), uri);
 
-            // Create Song object
-            Song song = new Song();
-            song.setId(i + "");
-            song.setTitle(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
-            song.setArtist(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
-            song.setAlbum(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));
-            song.setDuration(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+            // Create song object
+            Song song = this.createSongObject(i, uri);
 
             // Add song to list
             songs.add(song);
@@ -119,7 +116,8 @@ public class MusicService extends Service {
         return songs;
     }
 
-    public void sendCurrentSong() {
+    public Song sendCurrentSong() {
+        return currentSong;
     }
 
     public void sendSongByID(int id) {
@@ -134,5 +132,22 @@ public class MusicService extends Service {
 
     public void setStreaming(Boolean streaming) {
         isStreaming = streaming;
+    }
+
+    private Song createSongObject(int id, Uri uri){
+
+        // Set media metadate retriever
+        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+        mediaMetadataRetriever.setDataSource(getBaseContext(), uri);
+
+        // Create Song object
+        Song song = new Song();
+        song.setId(id + "");
+        song.setTitle(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
+        song.setArtist(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
+        song.setAlbum(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));
+        song.setDuration(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+
+        return song;
     }
 }

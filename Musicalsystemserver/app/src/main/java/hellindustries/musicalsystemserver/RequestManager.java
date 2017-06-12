@@ -31,12 +31,18 @@ public class RequestManager extends NanoHTTPD {
 
         if(uri.equalsIgnoreCase("/playpause")){
 
+            Song song;
             if(session.getParms().containsKey("searchByID")){
                 int songId = Integer.parseInt(session.getParms().get("searchByID"));
-                this.service.startNewSong(songId);
+                song = this.service.startNewSong(songId);
             } else {
                 this.service.playPause();
+                song = this.service.sendCurrentSong();
             }
+
+            Gson gson = new GsonBuilder().create();
+            String json = gson.toJson(song);
+            return new Response(json);
 
         } else if (uri.equalsIgnoreCase("/currentsong")){
 
@@ -51,7 +57,7 @@ public class RequestManager extends NanoHTTPD {
             } else if (uri.equalsIgnoreCase("/songlist")){
                 Gson gson = new GsonBuilder().create();
                 String json = gson.toJson(this.service.getSongList());
-                return new Response(Response.Status.OK, "application/json", json);
+                return new Response(json);
             } else {
                 //should return an http error
             }
