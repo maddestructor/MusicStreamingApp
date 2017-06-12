@@ -32,14 +32,6 @@ public class RequestManager extends NanoHTTPD {
 
             this.service.playPause();
 
-        } else if (uri.equalsIgnoreCase("/previous")){
-
-            this.service.doPrevious();
-
-        } else if (uri.equalsIgnoreCase("/next")){
-
-            this.service.doNext();
-
         } else if (uri.equalsIgnoreCase("/currentsong")){
 
             this.service.sendCurrentSong();

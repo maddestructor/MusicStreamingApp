@@ -25,7 +25,6 @@ public class MusicService extends Service {
         super();
     }
 
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -85,32 +84,6 @@ public class MusicService extends Service {
         } else {
             mediaPlayer.pause();
         }
-    }
-
-    /**
-     * Method to go to the previous song
-     */
-    public void doPrevious(){
-        if(currentSongIndex > 1)
-            currentSongIndex --;
-        else
-            currentSongIndex = musicFiles.length - 1;
-
-        prepareMediaPlayer();
-        playPause();
-    }
-
-    /**
-     * Method to go to the next song
-     */
-    public void doNext(){
-        if(currentSongIndex < musicFiles.length - 1)
-            currentSongIndex++;
-        else
-            currentSongIndex = 0;
-
-        prepareMediaPlayer();
-        playPause();
     }
 
     public ArrayList<Song> getSongList() {
