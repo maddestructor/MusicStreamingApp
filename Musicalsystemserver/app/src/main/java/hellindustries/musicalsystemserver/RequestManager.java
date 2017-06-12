@@ -30,7 +30,12 @@ public class RequestManager extends NanoHTTPD {
 
         if(uri.equalsIgnoreCase("/playpause")){
 
-            this.service.playPause();
+            if(session.getParms().containsKey("searchByID")){
+                int songId = Integer.parseInt(session.getParms().get("searchByID"));
+                this.service.startNewSong(songId);
+            } else {
+                this.service.playPause();
+            }
 
         } else if (uri.equalsIgnoreCase("/currentsong")){
 

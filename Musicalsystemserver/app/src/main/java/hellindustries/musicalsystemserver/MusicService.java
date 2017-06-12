@@ -86,6 +86,12 @@ public class MusicService extends Service {
         }
     }
 
+    public void startNewSong(int songId){
+        this.currentSongIndex = songId;
+        this.prepareMediaPlayer();
+        mediaPlayer.start();
+    }
+
     public ArrayList<Song> getSongList() {
         ArrayList<Song> songs = new ArrayList<>();
         for(int i = 0; i < musicFiles.length; i++){
