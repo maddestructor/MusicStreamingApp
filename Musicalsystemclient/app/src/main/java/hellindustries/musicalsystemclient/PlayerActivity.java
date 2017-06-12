@@ -7,8 +7,17 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +40,10 @@ public class PlayerActivity extends AppCompatActivity {
     TextView currentTimeTxt;
 
     AsyncHttpClient asyncHttpClient;
+
+    private ArrayList<Song> songs;
+    private int currentSongIndex = 0;
+
     private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
 
     @Override
@@ -42,6 +55,10 @@ public class PlayerActivity extends AppCompatActivity {
         setOnClickListeners();
 
         asyncHttpClient = new AsyncHttpClient();
+
+        // Get songs list from server
+        songs = new ArrayList<>();
+        this.getSongs();
 
         // Seek song when we move seekbar
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -129,6 +146,28 @@ public class PlayerActivity extends AppCompatActivity {
         return String.format("%d:%02d", minutes, seconds);
     }
 
+
+    private void getSongs(){
+        asyncHttpClient.get(BASIC_GET_URI + "songList", new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                for(int i = 0; i < response.length(); i++){
+                    try {
+                        Song song = new Gson().fromJson(response.getString(i), Song.class);
+                        songs.add(song);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+            }
+        });
+    }
+
     /**
      * Method that do play or do pause
      */
@@ -150,31 +189,36 @@ public class PlayerActivity extends AppCompatActivity {
      * Method to go to the previous song
      */
     private void doPrevious(){
-        asyncHttpClient.get(BASIC_GET_URI + "previous", new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+        if(currentSongIndex > 1)
+            currentSongIndex --;
+        else
+            currentSongIndex = songs.size() - 1;
 
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-
-            }
-        });
+        startNewSong();
     }
 
     /**
      * Method to go to the next song
      */
-    public void doNext(){
-        asyncHttpClient.get(BASIC_GET_URI + "next", new AsyncHttpResponseHandler() {
+    private void doNext(){
+        if(currentSongIndex < songs.size() - 1)
+            currentSongIndex++;
+        else
+            currentSongIndex = 0;
+
+        startNewSong();
+    }
+
+    private void startNewSong(){
+        RequestParams params = new RequestParams("searchByID", currentSongIndex);
+        asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
 
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
 
             }
         });

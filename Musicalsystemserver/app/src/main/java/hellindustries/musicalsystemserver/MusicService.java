@@ -13,6 +13,7 @@ import android.support.v4.app.ActivityCompat;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MusicService extends Service {
 
@@ -26,7 +27,6 @@ public class MusicService extends Service {
     public MusicService() {
         super();
     }
-
 
     @Override
     public void onCreate() {
@@ -89,33 +89,34 @@ public class MusicService extends Service {
         }
     }
 
-    /**
-     * Method to go to the previous song
-     */
-    public void doPrevious(){
-        if(currentSongIndex > 1)
-            currentSongIndex --;
-        else
-            currentSongIndex = musicFiles.length - 1;
-
-        prepareMediaPlayer();
-        playPause();
+    public void startNewSong(int songId){
+        this.currentSongIndex = songId;
+        this.prepareMediaPlayer();
+        mediaPlayer.start();
     }
 
-    /**
-     * Method to go to the next song
-     */
-    public void doNext(){
-        if(currentSongIndex < musicFiles.length - 1)
-            currentSongIndex++;
-        else
-            currentSongIndex = 0;
+    public ArrayList<Song> getSongList() {
+        ArrayList<Song> songs = new ArrayList<>();
+        for(int i = 0; i < musicFiles.length; i++){
 
-        prepareMediaPlayer();
-        playPause();
-    }
+            // Get song infos
+            Uri uri = Uri.parse(musicFiles[i].getPath());
+            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+            mediaMetadataRetriever.setDataSource(getBaseContext(), uri);
 
-    public void sendSongList() {
+            // Create Song object
+            Song song = new Song();
+            song.setId(i + "");
+            song.setTitle(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
+            song.setArtist(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
+            song.setAlbum(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));
+            song.setDuration(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+
+            // Add song to list
+            songs.add(song);
+
+        }
+        return songs;
     }
 
     public void sendCurrentSong() {

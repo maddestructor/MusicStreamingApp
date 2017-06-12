@@ -1,6 +1,7 @@
 package hellindustries.musicalsystemserver;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import fi.iki.elonen.NanoHTTPD;
 import java.util.regex.Matcher;
@@ -30,18 +31,12 @@ public class RequestManager extends NanoHTTPD {
 
         if(uri.equalsIgnoreCase("/playpause")){
 
-            setStreamingType(session.getHeaders().get(0));
-            this.service.playPause();
-            Response res = new Response("");
-
-
-        } else if (uri.equalsIgnoreCase("/previous")){
-
-            this.service.doPrevious();
-
-        } else if (uri.equalsIgnoreCase("/next")){
-
-            this.service.doNext();
+            if(session.getParms().containsKey("searchByID")){
+                int songId = Integer.parseInt(session.getParms().get("searchByID"));
+                this.service.startNewSong(songId);
+            } else {
+                this.service.playPause();
+            }
 
         } else if (uri.equalsIgnoreCase("/currentsong")){
 
@@ -54,7 +49,9 @@ public class RequestManager extends NanoHTTPD {
             if(m.find()){
                 this.service.sendSongByID(Integer.parseInt(m.group(1)));
             } else if (uri.equalsIgnoreCase("/songlist")){
-                this.service.sendSongList();
+                Gson gson = new GsonBuilder().create();
+                String json = gson.toJson(this.service.getSongList());
+                return new Response(Response.Status.OK, "application/json", json);
             } else {
                 //should return an http error
             }
