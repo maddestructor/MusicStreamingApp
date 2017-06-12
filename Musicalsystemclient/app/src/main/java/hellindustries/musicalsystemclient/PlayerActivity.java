@@ -2,7 +2,6 @@ package hellindustries.musicalsystemclient;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -42,6 +41,7 @@ public class PlayerActivity extends AppCompatActivity {
     AsyncHttpClient asyncHttpClient;
 
     private ArrayList<Song> songs;
+    private int currentSongIndex = 0;
 
     private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
 
@@ -187,34 +187,24 @@ public class PlayerActivity extends AppCompatActivity {
     /**
      * Method to go to the previous song
      */
-    private void doPrevious(){
-        asyncHttpClient.get(BASIC_GET_URI + "previous", new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+    public void doPrevious(){
+        if(currentSongIndex > 1)
+            currentSongIndex --;
+        else
+            currentSongIndex = songs.size() - 1;
 
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-
-            }
-        });
+        // Todo complete server request
     }
 
     /**
      * Method to go to the next song
      */
     public void doNext(){
-        asyncHttpClient.get(BASIC_GET_URI + "next", new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+        if(currentSongIndex < songs.size() - 1)
+            currentSongIndex++;
+        else
+            currentSongIndex = 0;
 
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-
-            }
-        });
+        // Todo complete server request
     }
 }
