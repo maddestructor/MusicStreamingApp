@@ -117,4 +117,16 @@ public class RequestManager extends NanoHTTPD {
         String json = gson.toJson(obj);
         return new Response(Response.Status.OK, "application/json", json);
     }
+
+    private Response createBadReqResponse(String msg){
+
+        return new Response(Response.Status.BAD_REQUEST, "message", msg);
+
+    }
+
+    private Response createIServerErrResponse(String msg){
+
+        return new Response(Response.Status.INTERNAL_ERROR, "message", msg);
+
+    }
 }
