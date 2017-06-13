@@ -31,6 +31,14 @@ public class RequestManager extends NanoHTTPD {
 
         if(uri.equalsIgnoreCase("/playpause")){
 
+            if(session.getHeaders().get(0).equalsIgnoreCase(MusicService.STREAMING_STRING)){
+                service.setStreaming(MusicService.STREAMING_ON);
+            } else if (session.getHeaders().get(0).equalsIgnoreCase(MusicService.STANDARD_STRING)){
+                service.setStreaming(MusicService.STREAMING_OFF);
+            } else {
+                //launch http error bad request
+            }
+
             Song song;
             if(session.getParms().containsKey("searchByID")){
                 int songId = Integer.parseInt(session.getParms().get("searchByID"));
@@ -55,9 +63,7 @@ public class RequestManager extends NanoHTTPD {
             if(m.find()){
                 this.service.sendSongByID(Integer.parseInt(m.group(1)));
             } else if (uri.equalsIgnoreCase("/songlist")){
-                Gson gson = new GsonBuilder().create();
-                String json = gson.toJson(this.service.getSongList());
-                return new Response(json);
+               return createSuccessfulResponse(this.service.getSongList());
             } else {
                 //should return an http error
             }
@@ -86,5 +92,11 @@ public class RequestManager extends NanoHTTPD {
 
     private void setStreamingType(String streamingType){
 
+    }
+
+    private Response createSuccessfulResponse(Object obj){
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(obj);
+        return new Response(Response.Status.OK, "application/json", json);
     }
 }

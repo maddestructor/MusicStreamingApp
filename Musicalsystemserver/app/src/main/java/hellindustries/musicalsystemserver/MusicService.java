@@ -23,6 +23,11 @@ public class MusicService extends Service {
     private int currentSongId = 0;
     private Song currentSong;
 
+    public final static String STREAMING_STRING = "streaming";
+    public final static String STANDARD_STRING = "standard";
+    public final static Boolean STREAMING_ON = true;
+    public final static Boolean STREAMING_OFF = false;
+
     public MusicService() {
         super();
     }
