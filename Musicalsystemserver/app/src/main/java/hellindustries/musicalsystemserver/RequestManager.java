@@ -31,56 +31,74 @@ public class RequestManager extends NanoHTTPD {
 
         if(uri.equalsIgnoreCase("/playpause")){
 
-            if(session.getHeaders().get(0).equalsIgnoreCase(MusicService.STREAMING_STRING)){
-                service.setStreaming(MusicService.STREAMING_ON);
-            } else if (session.getHeaders().get(0).equalsIgnoreCase(MusicService.STANDARD_STRING)){
-                service.setStreaming(MusicService.STREAMING_OFF);
-            } else {
-                //launch http error bad request
-            }
-
-            Song song;
-            if(session.getParms().containsKey("searchByID")){
-                int songId = Integer.parseInt(session.getParms().get("searchByID"));
-                song = this.service.startNewSong(songId);
-            } else {
-                this.service.playPause();
-                song = this.service.sendCurrentSong();
-            }
-
-            Gson gson = new GsonBuilder().create();
-            String json = gson.toJson(song);
-            return new Response(json);
+            return handlePlayPause(session);
 
         } else if (uri.equalsIgnoreCase("/currentsong")){
 
-            this.service.sendCurrentSong();
+            return createSuccessfulResponse(this.service.getCurrentSong());
 
         } else if (uri.toLowerCase().contains("songlist")){
 
-            Matcher m = regexMatcher("^\\/songlist\\/+(\\d{1,4})$", uri);
-
-            if(m.find()){
-                this.service.sendSongByID(Integer.parseInt(m.group(1)));
-            } else if (uri.equalsIgnoreCase("/songlist")){
-               return createSuccessfulResponse(this.service.getSongList());
-            } else {
-                //should return an http error
-            }
+            return handleSongListRequest(session);
 
         } else if (uri.toLowerCase().contains("seekto")){
 
-            Matcher m = regexMatcher("^\\/seekto\\/+(\\d{1,3})$", uri);
-
-            if(m.find()){
-                this.service.startSongFromTime(Integer.parseInt(m.group(1)));
-            } else {
-                //should return an http error
-            }
+            return handleSeekToRequest(session);
 
         }
 
         return super.serve(session);
+    }
+
+    private Response handlePlayPause(IHTTPSession session) {
+        Song song;
+
+        if(session.getHeaders().get(0).equalsIgnoreCase(MusicService.STREAMING_STRING)){
+            service.setStreaming(MusicService.STREAMING_ON);
+        } else if (session.getHeaders().get(0).equalsIgnoreCase(MusicService.STANDARD_STRING)){
+            service.setStreaming(MusicService.STREAMING_OFF);
+        } else {
+            return createBadReqResponse("Vous devez spécifier le mode de lecture dans votre requête");
+        }
+
+        if(session.getParms().containsKey("searchByID")){
+            int songId = Integer.parseInt(session.getParms().get("searchByID"));
+            song = this.service.startNewSong(songId);
+        } else {
+            this.service.playPause();
+            song = this.service.getCurrentSong();
+        }
+
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(song);
+        return new Response(json);
+    }
+
+    private Response handleSongListRequest(IHTTPSession session){
+        String uri = session.getUri();
+
+        Matcher m = regexMatcher("^\\/songlist\\/+(\\d{1,4})$", uri);
+
+        if(m.find()){
+            return createSuccessfulResponse(this.service.getSongByID(Integer.parseInt(m.group(1))));
+        } else if (uri.equalsIgnoreCase("/songlist")){
+            return createSuccessfulResponse(this.service.getSongList());
+        } else {
+            return createBadReqResponse("L'identifiant de chanson spécifié n'existe pas");
+        }
+    }
+
+    private Response handleSeekToRequest(IHTTPSession session) {
+        String uri = session.getUri();
+
+        Matcher m = regexMatcher("^\\/seekto\\/+(\\d{1,3})$", uri);
+
+        if(m.find()){
+            this.service.startSongFromTime(Integer.parseInt(m.group(1)));
+            return createSuccessfulResponse("I shall do what you say");
+        } else {
+            return createIServerErrResponse("Un problème est survenu dans la fonction SeekTo");
+        }
     }
 
     private Matcher regexMatcher(String pattern, String toParse){
