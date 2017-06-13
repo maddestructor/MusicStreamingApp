@@ -22,6 +22,7 @@ public class MusicService extends Service {
     private File[] musicFiles;
     private int currentSongId = 0;
     private Song currentSong;
+    ArrayList<Song> songList;
 
     public final static String STREAMING_STRING = "streaming";
     public final static String STANDARD_STRING = "standard";
@@ -36,8 +37,10 @@ public class MusicService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        // Get songs from Music device folder
+        // Get songList from Music device folder
         musicFiles = new File(Environment.getExternalStorageDirectory().getPath() + "/Music/").listFiles();
+
+        populateSongList();
 
         // By default prepare the media player with first song at index 0
         prepareMediaPlayer(Uri.parse(musicFiles[currentSongId].getPath()));
@@ -84,6 +87,22 @@ public class MusicService extends Service {
         this.currentSong = this.createSongObject(currentSongId, uri);
     }
 
+    private void populateSongList(){
+        songList = new ArrayList<>();
+        for(int i = 0; i < musicFiles.length; i++){
+
+            // Get song uri
+            Uri uri = Uri.parse(musicFiles[i].getPath());
+
+            // Create song object
+            Song song = this.createSongObject(i, uri);
+
+            // Add song to list
+            songList.add(song);
+
+        }
+    }
+
     /**
      * Method that do play or do pause
      */
@@ -105,27 +124,15 @@ public class MusicService extends Service {
     }
 
     public ArrayList<Song> getSongList() {
-        ArrayList<Song> songs = new ArrayList<>();
-        for(int i = 0; i < musicFiles.length; i++){
-
-            // Get song uri
-            Uri uri = Uri.parse(musicFiles[i].getPath());
-
-            // Create song object
-            Song song = this.createSongObject(i, uri);
-
-            // Add song to list
-            songs.add(song);
-
-        }
-        return songs;
+        return songList;
     }
 
-    public Song sendCurrentSong() {
+    public Song getCurrentSong() {
         return currentSong;
     }
 
-    public void sendSongByID(int id) {
+    public Song getSongByID(int id) {
+        return songList.get(id);
     }
 
     public void startSongFromTime(int time) {
