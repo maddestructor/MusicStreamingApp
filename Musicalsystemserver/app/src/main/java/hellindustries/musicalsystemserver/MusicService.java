@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,11 +24,13 @@ public class MusicService extends Service {
     private int currentSongId = 0;
     private Song currentSong;
     ArrayList<Song> songList;
+    private RequestManager requestManager;
 
     public final static String STREAMING_STRING = "streaming";
     public final static String STANDARD_STRING = "standard";
     public final static Boolean STREAMING_ON = true;
     public final static Boolean STREAMING_OFF = false;
+    private final static String TAG = "MusicService";
 
     public MusicService() {
         super();
@@ -48,9 +51,10 @@ public class MusicService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        RequestManager requestManager = new RequestManager(PORT, this);
+        requestManager = new RequestManager(PORT, this);
         try {
             requestManager.start();
+            Log.d(TAG, "onStartCommand: Service has successfully been started");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,6 +65,13 @@ public class MusicService extends Service {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        requestManager.stop();
+        Log.d(TAG, "onDestroy: Service has successfully been stopped");
     }
 
     /**
