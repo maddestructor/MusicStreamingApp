@@ -45,7 +45,10 @@ public class PlayerActivity extends AppCompatActivity {
     private int currentSongIndex = 0;
     private boolean isPlaying = false;
 
-    private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
+    public final static String STREAMING_STRING = "streaming";
+    public final static String STANDARD_STRING = "standard";
+    public final static String PLAY_TYPE = "playingType";
+    private final String BASIC_GET_URI = "http://192.168.2.189:9000/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,6 +176,7 @@ public class PlayerActivity extends AppCompatActivity {
      * Method that do play or do pause
      */
     private void doPlayPause(){
+        asyncHttpClient.addHeader(PLAY_TYPE, STANDARD_STRING);
         asyncHttpClient.get(BASIC_GET_URI + "playpause", new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
