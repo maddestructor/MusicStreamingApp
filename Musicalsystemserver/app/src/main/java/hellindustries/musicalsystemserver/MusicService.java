@@ -28,6 +28,7 @@ public class MusicService extends Service {
 
     public final static String STREAMING_STRING = "streaming";
     public final static String STANDARD_STRING = "standard";
+    public final static String PLAY_TYPE = "playingtype";
     public final static Boolean STREAMING_ON = true;
     public final static Boolean STREAMING_OFF = false;
     private final static String TAG = "MusicService";

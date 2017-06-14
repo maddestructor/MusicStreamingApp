@@ -45,21 +45,28 @@ public class RequestManager extends NanoHTTPD {
 
             return handleSeekToRequest(session);
 
+        } else {
+            return createBadReqResponse("Le chemin de votre requête n'existe pas dans l'api");
         }
-
-        return super.serve(session);
     }
 
     private Response handlePlayPause(IHTTPSession session) {
         Song song;
 
-        if(session.getHeaders().get(0).equalsIgnoreCase(MusicService.STREAMING_STRING)){
-            service.setStreaming(MusicService.STREAMING_ON);
-        } else if (session.getHeaders().get(0).equalsIgnoreCase(MusicService.STANDARD_STRING)){
-            service.setStreaming(MusicService.STREAMING_OFF);
+        String playingType = session.getHeaders().get(MusicService.PLAY_TYPE);
+
+        if(playingType != null){
+            if(playingType.equalsIgnoreCase(MusicService.STREAMING_STRING)){
+                service.setStreaming(MusicService.STREAMING_ON);
+            } else if (playingType.equalsIgnoreCase(MusicService.STANDARD_STRING)){
+                service.setStreaming(MusicService.STREAMING_OFF);
+            } else {
+                return createBadReqResponse("Vous devez spécifier le mode de lecture dans votre requête");
+            }
         } else {
             return createBadReqResponse("Vous devez spécifier le mode de lecture dans votre requête");
         }
+
 
         if(session.getParms().containsKey("searchByID")){
             int songId = Integer.parseInt(session.getParms().get("searchByID"));
