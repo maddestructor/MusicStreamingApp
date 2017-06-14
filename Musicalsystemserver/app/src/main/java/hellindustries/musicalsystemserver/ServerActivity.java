@@ -34,13 +34,27 @@ public class ServerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_server);
         verifyStoragePermission();
 
-        Intent serviceIntent = new Intent(this, MusicService.class);
-        startService(serviceIntent);
+        startService(new Intent(this, MusicService.class));
+
+        serviceToggle = (Switch)findViewById(R.id.serviceToggle);
         songsListView = (ListView) findViewById(R.id.songsListView);
         musicFiles = new File(Environment.getExternalStorageDirectory().getPath() + "/Music/").listFiles();
         populateSongArray();
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songArray);
         songsListView.setAdapter(arrayAdapter);
+
+        serviceToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    startService(new Intent(getApplicationContext(), MusicService.class));
+                } else {
+                    stopService(new Intent(getApplicationContext(), MusicService.class));
+                }
+            }
+        });
+    }
+
     @Override
     protected void onDestroy() {
         stopService(new Intent(this, MusicService.class));
