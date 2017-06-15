@@ -205,8 +205,8 @@ public class PlayerActivity extends AppCompatActivity {
                         updateBasicGetUri();
                         break;
                     case PREF_STREAMING:
-                        isStreaming = sharedPreferences.getBoolean(key, false);
                         doStop();
+                        isStreaming = sharedPreferences.getBoolean(key, false);
                         break;
                 }
             }
@@ -394,17 +394,23 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void doStop() {
-        asyncHttpClient.get(basicGetUri + "stop", new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                resetUI();
-            }
+        if(isStreaming){
+            mediaPlayer.pause();
+            mediaPlayer.seekTo(0);
+            resetUI();
+        }else{
+            asyncHttpClient.get(basicGetUri + "stop", new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    resetUI();
+                }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
 
-            }
-        });
+                }
+            });
+        }
     }
 
     private void resetUI(){
