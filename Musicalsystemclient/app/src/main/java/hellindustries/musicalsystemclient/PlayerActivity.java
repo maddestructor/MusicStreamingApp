@@ -35,6 +35,7 @@ public class PlayerActivity extends AppCompatActivity {
     ImageView shuffleBtn;
     ImageView repeatBtn;
     ImageView listBtn;
+    ImageView settingsBtn;
     ImageButton stopBtn;
     ImageView albumImg;
     ImageView albumIcon;
@@ -88,6 +89,7 @@ public class PlayerActivity extends AppCompatActivity {
         // Get songs list from server
         songList = new ArrayList<>();
         this.getSongs();
+
     }
 
     private void getUIComponents() {
@@ -100,6 +102,7 @@ public class PlayerActivity extends AppCompatActivity {
         stopBtn = (ImageButton) findViewById(R.id.stopBtn);
         albumImg = (ImageView) findViewById(R.id.albumImg);
         albumIcon = (ImageView) findViewById(R.id.albumIcon);
+        settingsBtn = (ImageView) findViewById(R.id.settingsBtn);
 
         seekbar = (SeekBar) findViewById(R.id.seekBar);
         songNameTxt = (TextView) findViewById(R.id.songNameTxt);
@@ -149,6 +152,12 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 doStop();
+            }
+        });
+        settingsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
     }
