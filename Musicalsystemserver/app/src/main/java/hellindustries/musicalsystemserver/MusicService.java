@@ -6,8 +6,10 @@ import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.os.IBinder;
+import android.text.format.Formatter;
 import android.util.Log;
 
 import java.io.File;
@@ -55,9 +57,11 @@ public class MusicService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         requestManager = new RequestManager(PORT, this);
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
         try {
             requestManager.start();
-            Log.d(TAG, "onStartCommand: Service has successfully been started");
+            Log.d(TAG, "onStartCommand: Service has successfully been started on ip: " + ip + " and port: " + PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }
