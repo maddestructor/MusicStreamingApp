@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -47,6 +49,7 @@ public class PlayerActivity extends AppCompatActivity {
     TextView artistTxt;
     TextView songTimeTxt;
     TextView currentTimeTxt;
+    ProgressBar spinner;
 
     AsyncHttpClient asyncHttpClient;
 
@@ -108,7 +111,8 @@ public class PlayerActivity extends AppCompatActivity {
         albumImg = (ImageView) findViewById(R.id.albumImg);
         albumIcon = (ImageView) findViewById(R.id.albumIcon);
         settingsBtn = (ImageView) findViewById(R.id.settingsBtn);
-
+        spinner = (ProgressBar) findViewById(R.id.spinner);
+        spinner.setVisibility(View.GONE);
         seekbar = (SeekBar) findViewById(R.id.seekBar);
         songNameTxt = (TextView) findViewById(R.id.songNameTxt);
         artistTxt = (TextView) findViewById(R.id.artistTxt);
@@ -403,6 +407,8 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void prepareMediaPlayer(String url){
+        spinner.setVisibility(View.VISIBLE);
+        
         if(mediaPlayer != null){
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -425,6 +431,7 @@ public class PlayerActivity extends AppCompatActivity {
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+                spinner.setVisibility(View.GONE);
                 mp.start();
                 isPlaying = true;
                 updatePlayPauseBtn();
