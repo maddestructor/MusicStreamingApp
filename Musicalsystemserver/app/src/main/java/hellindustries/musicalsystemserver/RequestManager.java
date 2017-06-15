@@ -1,5 +1,7 @@
 package hellindustries.musicalsystemserver;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -19,6 +21,7 @@ import java.util.regex.Pattern;
 
 public class RequestManager extends NanoHTTPD {
 
+    private static final String TAG = "Debug info";
     private MusicService service;
 
     public RequestManager(int port, MusicService service) {
@@ -69,16 +72,21 @@ public class RequestManager extends NanoHTTPD {
 
         if(playingType != null){
             if(playingType.equalsIgnoreCase(MusicService.STREAMING_STRING)){
+
                 service.setStreaming(MusicService.STREAMING_ON);
                 return handleStreamingRequest(session);
+
             } else if (playingType.equalsIgnoreCase(MusicService.STANDARD_STRING)){
+
                 service.setStreaming(MusicService.STREAMING_OFF);
                 return handleStandardRequest(session);
+
             } else {
                 return createBadReqResponse("Vous devez spécifier le mode de lecture dans votre requête");
             }
         } else {
             File songToPlay = service.getMusicFiles()[service.getCurrentSongId()];
+            Log.d(TAG, "handlePlayPause: playing id " + service.getCurrentSongId());
             return serveFile(session, songToPlay, "audio/mpeg");
         }
 
@@ -98,6 +106,7 @@ public class RequestManager extends NanoHTTPD {
         }
 
         serveFile(session, songToPlay, "audio/mpeg");
+        Log.d(TAG, "handleStreamingRequest: playing id " + service.getCurrentSongId());
 
         return createSuccessfulResponse(this.service.getCurrentSong());
     }

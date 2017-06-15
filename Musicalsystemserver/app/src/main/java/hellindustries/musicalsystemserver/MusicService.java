@@ -173,6 +173,10 @@ public class MusicService extends Service {
     }
 
     public void startSongFromTime(int time) {
+        Uri uri = Uri.parse(musicFiles[this.currentSongId].getPath());
+        this.prepareMediaPlayer(uri);
+        mediaPlayer.seekTo(time);
+        mediaPlayer.start();
     }
 
     public File[] getMusicFiles() {
