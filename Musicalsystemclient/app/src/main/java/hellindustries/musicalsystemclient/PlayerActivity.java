@@ -1,5 +1,6 @@
 package hellindustries.musicalsystemclient;
 
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,7 +10,6 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
@@ -42,45 +42,45 @@ public class PlayerActivity extends AppCompatActivity {
     AsyncHttpClient asyncHttpClient;
 
     private ArrayList<Song> songs;
+    private Song currentSong;
     private int currentSongIndex = 0;
     private boolean isPlaying = false;
+    private int currentTime = 0;
+    private Handler handler;
+    private Runnable updateProgressionRunnable;
+
 
     public final static String STREAMING_STRING = "streaming";
     public final static String STANDARD_STRING = "standard";
     public final static String PLAY_TYPE = "playingType";
-    private final String BASIC_GET_URI = "http://192.168.2.189:9000/";
+    private final int ONE_SECOND_IN_MILLIS = 1000;
+    private final String BASIC_GET_URI = "http://192.168.0.45:9000/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
+        // Initiate UI
         getUIComponents();
         setOnClickListeners();
 
+        // Disable seekbar from being dragged
+        seekbar.setEnabled(false);
+
+        // Initiate some variables
         asyncHttpClient = new AsyncHttpClient();
+        handler = new Handler();
+        updateProgressionRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateProgression();
+            }
+        };
 
         // Get songs list from server
         songs = new ArrayList<>();
         this.getSongs();
-
-        // Seek song when we move seekbar
-        seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
     }
 
     private void getUIComponents() {
@@ -183,8 +183,9 @@ public class PlayerActivity extends AppCompatActivity {
                 isPlaying = !isPlaying;
                 updatePlayPauseBtn();
 
-                Song song = new Gson().fromJson(responseBody.toString(), Song.class);
-                updateSongInfos(song);
+                currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
+                playPauseProgression();
+                updateSongInfos();
             }
 
             @Override
@@ -223,11 +224,14 @@ public class PlayerActivity extends AppCompatActivity {
         asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+                currentTime = 0;
+
                 isPlaying = true;
                 updatePlayPauseBtn();
 
-                Song song = new Gson().fromJson(responseBody.toString(), Song.class);
-                updateSongInfos(song);
+                currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
+                playPauseProgression();
+                updateSongInfos();
             }
 
             @Override
@@ -237,10 +241,12 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-    private void updateSongInfos(Song song){
-        this.songNameTxt.setText(song.getTitle());
-        this.artistTxt.setText(song.getArtist());
-        this.songTimeTxt.setText(this.millisToStringTimer(Integer.parseInt(song.getDuration())));
+    private void updateSongInfos(){
+        this.songNameTxt.setText(currentSong.getTitle());
+        this.artistTxt.setText(currentSong.getArtist());
+        this.songTimeTxt.setText(this.millisToStringTimer(Integer.parseInt(currentSong.getDuration())));
+
+        this.seekbar.setMax(Integer.parseInt(currentSong.getDuration()));
     }
 
     private void updatePlayPauseBtn(){
@@ -248,5 +254,29 @@ public class PlayerActivity extends AppCompatActivity {
             playPauseBtn.setImageResource(R.drawable.ic_pause_black_24dp);
         else
             playPauseBtn.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+    }
+
+    private void playPauseProgression(){
+        if(isPlaying)
+            handler.postDelayed(updateProgressionRunnable, 1);
+        else
+            handler.removeCallbacks(updateProgressionRunnable);
+    }
+
+    private void updateProgression(){
+        handler.removeCallbacks(updateProgressionRunnable);
+
+        seekbar.setProgress(currentTime);
+        currentTimeTxt.setText(this.millisToStringTimer(currentTime));
+
+        currentTime += ONE_SECOND_IN_MILLIS;
+
+        // If the song is finished
+        if(currentTime >= Integer.parseInt(currentSong.getDuration())){
+            handler.removeCallbacks(updateProgressionRunnable);
+            doNext();
+        }
+
+        handler.postDelayed(updateProgressionRunnable, ONE_SECOND_IN_MILLIS);
     }
 }
