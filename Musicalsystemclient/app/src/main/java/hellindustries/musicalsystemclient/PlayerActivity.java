@@ -97,7 +97,7 @@ public class PlayerActivity extends AppCompatActivity {
         shuffleBtn = (ImageView) findViewById(R.id.shuffleBtn);
         repeatBtn = (ImageView) findViewById(R.id.repeatBtn);
         listBtn = (ImageView) findViewById(R.id.listBtn);
-        stopBtn = (ImageButton) findViewById(R.id.stopButton);
+        stopBtn = (ImageButton) findViewById(R.id.stopBtn);
         albumImg = (ImageView) findViewById(R.id.albumImg);
         albumIcon = (ImageView) findViewById(R.id.albumIcon);
 
