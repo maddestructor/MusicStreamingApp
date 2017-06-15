@@ -395,8 +395,10 @@ public class PlayerActivity extends AppCompatActivity {
 
     private void doStop() {
         if(isStreaming){
-            mediaPlayer.pause();
-            mediaPlayer.seekTo(0);
+            if(mediaPlayer != null){
+                mediaPlayer.pause();
+                mediaPlayer.seekTo(0);
+            }
             resetUI();
         }else{
             asyncHttpClient.get(basicGetUri + "stop", new AsyncHttpResponseHandler() {
