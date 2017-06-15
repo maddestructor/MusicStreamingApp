@@ -23,6 +23,7 @@ public class MusicService extends Service {
 
     private Boolean isStreaming = false;
     private File[] musicFiles;
+
     private int currentSongId = 0;
     private Song currentSong;
     ArrayList<Song> songList;
@@ -162,11 +163,24 @@ public class MusicService extends Service {
         return currentSong;
     }
 
+    public void setCurrentSongById(int id) {
+        this.currentSongId = id;
+        this.currentSong = songList.get(id);
+    }
+
     public Song getSongByID(int id) {
         return songList.get(id);
     }
 
     public void startSongFromTime(int time) {
+    }
+
+    public File[] getMusicFiles() {
+        return musicFiles;
+    }
+
+    public int getCurrentSongId() {
+        return currentSongId;
     }
 
     public Boolean getStreaming() {
