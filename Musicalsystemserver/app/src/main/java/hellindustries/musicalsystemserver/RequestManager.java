@@ -37,6 +37,10 @@ public class RequestManager extends NanoHTTPD {
 
             return createSuccessfulResponse(this.service.getCurrentSong());
 
+        } else if (uri.equalsIgnoreCase("/stop")){
+
+            return handleStopRequest();
+
         } else if (uri.toLowerCase().contains("songlist")){
 
             return handleSongListRequest(session);
@@ -79,6 +83,16 @@ public class RequestManager extends NanoHTTPD {
         Gson gson = new GsonBuilder().create();
         String json = gson.toJson(song);
         return new Response(json);
+    }
+
+    private Response handleStopRequest() {
+        Boolean songHasBeenStopped = this.service.stop();
+
+        if (songHasBeenStopped){
+            return createSuccessfulResponse("The song was successfully stopped");
+        } else {
+            return createSuccessfulResponse("No song was playing at the moment");
+        }
     }
 
     private Response handleSongListRequest(IHTTPSession session){

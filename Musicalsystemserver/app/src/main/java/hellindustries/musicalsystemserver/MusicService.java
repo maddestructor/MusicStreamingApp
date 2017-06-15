@@ -31,6 +31,8 @@ public class MusicService extends Service {
     public final static String PLAY_TYPE = "playingtype";
     public final static Boolean STREAMING_ON = true;
     public final static Boolean STREAMING_OFF = false;
+    public final static Boolean SONG_STOPPED = true;
+    public final static Boolean NO_SONG_PLAYING = false;
     private final static String TAG = "MusicService";
 
     public MusicService() {
@@ -123,6 +125,18 @@ public class MusicService extends Service {
             mediaPlayer.start();
         } else {
             mediaPlayer.pause();
+        }
+    }
+
+    /**
+     * Method that do stop function on mediaplayer
+     */
+    public Boolean stop() {
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            return SONG_STOPPED;
+        } else {
+            return NO_SONG_PLAYING;
         }
     }
 
