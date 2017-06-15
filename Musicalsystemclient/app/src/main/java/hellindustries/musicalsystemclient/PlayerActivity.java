@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -31,6 +32,7 @@ public class PlayerActivity extends AppCompatActivity {
     ImageView shuffleBtn;
     ImageView repeatBtn;
     ImageView listBtn;
+    ImageButton stopBtn;
     ImageView albumImg;
     ImageView albumIcon;
     SeekBar seekbar;
@@ -54,7 +56,7 @@ public class PlayerActivity extends AppCompatActivity {
     public final static String STANDARD_STRING = "standard";
     public final static String PLAY_TYPE = "playingType";
     private final int ONE_SECOND_IN_MILLIS = 1000;
-    private final String BASIC_GET_URI = "http://192.168.0.45:9000/";
+    private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +92,7 @@ public class PlayerActivity extends AppCompatActivity {
         shuffleBtn = (ImageView) findViewById(R.id.shuffleBtn);
         repeatBtn = (ImageView) findViewById(R.id.repeatBtn);
         listBtn = (ImageView) findViewById(R.id.listBtn);
+        stopBtn = (ImageButton) findViewById(R.id.stopButton);
         albumImg = (ImageView) findViewById(R.id.albumImg);
         albumIcon = (ImageView) findViewById(R.id.albumIcon);
 
@@ -137,7 +140,14 @@ public class PlayerActivity extends AppCompatActivity {
 
             }
         });
+        stopBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doStop();
+            }
+        });
     }
+
 
     /**
      * Method that format timers
@@ -218,6 +228,21 @@ public class PlayerActivity extends AppCompatActivity {
 
         startNewSong();
     }
+
+    private void doStop() {
+        asyncHttpClient.get(BASIC_GET_URI + "stop", new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+            }
+        });
+    }
+
 
     private void startNewSong(){
         RequestParams params = new RequestParams("searchByID", currentSongIndex);
