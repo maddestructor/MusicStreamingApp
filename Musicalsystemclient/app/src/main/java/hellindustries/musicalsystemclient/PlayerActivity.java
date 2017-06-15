@@ -1,5 +1,7 @@
 package hellindustries.musicalsystemclient;
 
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import java.util.Collections;
@@ -53,6 +56,8 @@ public class PlayerActivity extends AppCompatActivity {
     private boolean isPlaying = false;
     private boolean isShuffled = false;
     private boolean isRepeating = false;
+    private boolean isStreaming = false;
+    private MediaPlayer mediaPlayer;
     private int currentTime = 0;
     private Handler handler;
     private Runnable updateProgressionRunnable;
@@ -196,16 +201,53 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
+
+
     /**
      * Method that do play or do pause
      */
     private void doPlayPause(){
-        asyncHttpClient.addHeader(PLAY_TYPE, STANDARD_STRING);
+        isStreaming = true;
+        if(isStreaming){
+            if(mediaPlayer == null){
+                streamRequest();
+            } else {
+                if (mediaPlayer.isPlaying()){
+                    mediaPlayer.pause();
+                    isPlaying = false;
+                } else {
+                    mediaPlayer.start();
+                    isPlaying = true;
+                }
+                updatePlayPauseBtn();
+                playPauseProgression();
+            }
+        } else {
+            asyncHttpClient.addHeader(PLAY_TYPE, STANDARD_STRING);
+            asyncHttpClient.get(BASIC_GET_URI + "playpause", new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+                    isPlaying = !isPlaying;
+                    updatePlayPauseBtn();
+
+                    currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
+                    playPauseProgression();
+                    updateSongInfos();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+                }
+            });
+        }
+    }
+
+    private void streamRequest() {
+        asyncHttpClient.addHeader(PLAY_TYPE, STREAMING_STRING);
         asyncHttpClient.get(BASIC_GET_URI + "playpause", new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
-                isPlaying = !isPlaying;
-                updatePlayPauseBtn();
 
                 currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
                 playPauseProgression();
@@ -217,6 +259,7 @@ public class PlayerActivity extends AppCompatActivity {
 
             }
         });
+        prepareMediaPlayer(BASIC_GET_URI + "playpause");
     }
 
     /**
@@ -358,4 +401,49 @@ public class PlayerActivity extends AppCompatActivity {
 
         handler.postDelayed(updateProgressionRunnable, ONE_SECOND_IN_MILLIS);
     }
+
+    private void prepareMediaPlayer(String url){
+        if(mediaPlayer != null){
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        setMediaPlayerListeners(mediaPlayer);
+        try {
+            mediaPlayer.setDataSource(url);
+            mediaPlayer.prepareAsync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void setMediaPlayerListeners(MediaPlayer mediaPlayer) {
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+                isPlaying = true;
+                updatePlayPauseBtn();
+                playPauseProgression();
+
+            }
+        });
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+
+            }
+        });
+        mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+            @Override
+            public void onBufferingUpdate(MediaPlayer mp, int percent) {
+
+            }
+        });
+    }
+
 }
