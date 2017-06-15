@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
@@ -236,14 +237,22 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void doStop() {
-        asyncHttpClient.get(BASIC_GET_URI + "stop", new JsonHttpResponseHandler() {
+        asyncHttpClient.get(BASIC_GET_URI + "stop", new AsyncHttpResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                // Update play pause state
+                isPlaying = false;
+                updatePlayPauseBtn();
+                playPauseProgression();
 
+                // Reset current time and seekbar
+                currentTime = 0;
+                currentTimeTxt.setText(millisToStringTimer(0));
+                seekbar.setProgress(0);
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
 
             }
         });
