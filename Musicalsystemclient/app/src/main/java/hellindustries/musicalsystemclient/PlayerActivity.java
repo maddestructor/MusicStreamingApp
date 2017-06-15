@@ -198,7 +198,7 @@ public class PlayerActivity extends AppCompatActivity {
      * Method to go to the previous song
      */
     private void doPrevious(){
-        if(currentSongIndex > 1)
+        if(currentSongIndex > 0)
             currentSongIndex --;
         else
             currentSongIndex = songs.size() - 1;
