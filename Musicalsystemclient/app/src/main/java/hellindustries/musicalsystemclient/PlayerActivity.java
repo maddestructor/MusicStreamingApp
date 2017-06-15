@@ -267,27 +267,57 @@ public class PlayerActivity extends AppCompatActivity {
                 playPauseProgression();
             }
         } else {
-            asyncHttpClient.addHeader(PLAY_TYPE, STANDARD_STRING);
-            asyncHttpClient.get(basicGetUri + "playpause", new JsonHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
-                    isPlaying = !isPlaying;
-                    updatePlayPauseBtn();
-
-                    currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
-                    playPauseProgression();
-                    updateSongInfos();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-
-                }
-            });
+            standardRequest();
         }
     }
 
+    private void standardRequest() {
+        asyncHttpClient.addHeader(PLAY_TYPE, STANDARD_STRING);
+        asyncHttpClient.get(basicGetUri + "playpause", new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+                isPlaying = !isPlaying;
+                updatePlayPauseBtn();
+
+                currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
+                playPauseProgression();
+                updateSongInfos();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+            }
+        });
+    }
+
+    private void standardRequest(int songId) {
+        RequestParams params = new RequestParams("searchByID", songId);
+        asyncHttpClient.get(basicGetUri + "playpause", params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+                currentTime = 0;
+
+                isPlaying = true;
+                updatePlayPauseBtn();
+
+                currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
+                playPauseProgression();
+                updateSongInfos();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+            }
+        });
+    }
+
+    /**
+     * Allow us to request a stream for the current song on the server
+     */
     private void streamRequest() {
+        //We tell the server we want to start a stream and he will
         asyncHttpClient.addHeader(PLAY_TYPE, STREAMING_STRING);
         asyncHttpClient.get(basicGetUri + "playpause", new JsonHttpResponseHandler() {
             @Override
@@ -303,6 +333,39 @@ public class PlayerActivity extends AppCompatActivity {
 
             }
         });
+        prepareMediaPlayer(basicGetUri + "playpause");
+        //He will then connect to the stream by itself
+        //We use the same URL we started the stream on and give to the mediaPlayer
+    }
+
+    /**
+     * Allow us to request a stream for a specific song
+     * @param songId
+     */
+    private void streamRequest(int songId) {
+        //We tell the server we want to start a stream for a specific song
+        asyncHttpClient.addHeader(PLAY_TYPE, STREAMING_STRING);
+        RequestParams params = new RequestParams("searchByID", songId);
+        asyncHttpClient.get(basicGetUri + "playpause", params, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
+                currentTime = 0;
+
+                isPlaying = true;
+                updatePlayPauseBtn();
+
+                currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
+                playPauseProgression();
+                updateSongInfos();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+
+            }
+        });
+        //We use the same URL we started the stream on and give to the mediaPlayer
+        //He will then connect to the stream by itself
         prepareMediaPlayer(basicGetUri + "playpause");
     }
 
@@ -359,25 +422,11 @@ public class PlayerActivity extends AppCompatActivity {
 
     private void startNewSong(){
         int songId = Integer.parseInt(songList.get(currentSongIndex).getId());
-        RequestParams params = new RequestParams("searchByID", songId);
-        asyncHttpClient.get(basicGetUri + "playpause", params, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
-                currentTime = 0;
-
-                isPlaying = true;
-                updatePlayPauseBtn();
-
-                currentSong = new Gson().fromJson(responseBody.toString(), Song.class);
-                playPauseProgression();
-                updateSongInfos();
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-
-            }
-        });
+        if(isStreaming) {
+            streamRequest(songId);
+        } else {
+            standardRequest(songId);
+        }
     }
 
     private void doShuffle(){
@@ -442,22 +491,13 @@ public class PlayerActivity extends AppCompatActivity {
 
         currentTime += ONE_SECOND_IN_MILLIS;
 
-        // If the song is finished
-        if(currentTime >= Integer.parseInt(currentSong.getDuration())){
-            handler.removeCallbacks(updateProgressionRunnable);
-            
-            if(isRepeating)
-                currentSongIndex --;
-
-            doNext();
-        }
 
         handler.postDelayed(updateProgressionRunnable, ONE_SECOND_IN_MILLIS);
     }
 
     private void prepareMediaPlayer(String url){
         spinner.setVisibility(View.VISIBLE);
-        
+
         if(mediaPlayer != null){
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -491,7 +531,10 @@ public class PlayerActivity extends AppCompatActivity {
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
+                if(isRepeating)
+                    currentSongIndex --;
 
+                doNext();
             }
         });
         mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
