@@ -133,7 +133,8 @@ public class MusicService extends Service {
      */
     public Boolean stop() {
         if (mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
+            mediaPlayer.pause();
+            mediaPlayer.seekTo(0);
             return SONG_STOPPED;
         } else {
             return NO_SONG_PLAYING;
