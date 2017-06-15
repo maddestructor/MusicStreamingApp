@@ -1,10 +1,12 @@
 package hellindustries.musicalsystemclient;
 
+import android.support.annotation.NonNull;
+
 /**
  * Created by Jonathan on 2017-06-08.
  */
 
-public class Song {
+public class Song implements Comparable {
 
     private String id;
     private String title;
@@ -59,5 +61,10 @@ public class Song {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    @Override
+    public int compareTo(@NonNull Object o) {
+        return id.compareTo(((Song)o).getId());
     }
 }

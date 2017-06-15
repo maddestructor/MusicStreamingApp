@@ -46,8 +46,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     AsyncHttpClient asyncHttpClient;
 
-    private ArrayList<Song> songs;
-    private ArrayList<Integer> indexList;
+    private ArrayList<Song> songList;
     private Song currentSong;
     private int currentSongIndex = 0;
     private boolean isPlaying = false;
@@ -87,8 +86,7 @@ public class PlayerActivity extends AppCompatActivity {
         };
 
         // Get songs list from server
-        songs = new ArrayList<>();
-        indexList = new ArrayList<>();
+        songList = new ArrayList<>();
         this.getSongs();
     }
 
@@ -175,8 +173,7 @@ public class PlayerActivity extends AppCompatActivity {
                 for(int i = 0; i < response.length(); i++){
                     try {
                         Song song = new Gson().fromJson(response.getString(i), Song.class);
-                        songs.add(song);
-                        indexList.add(i);
+                        songList.add(song);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -220,7 +217,7 @@ public class PlayerActivity extends AppCompatActivity {
         if(currentSongIndex > 0)
             currentSongIndex --;
         else
-            currentSongIndex = songs.size() - 1;
+            currentSongIndex = songList.size() - 1;
 
         startNewSong();
     }
@@ -229,7 +226,7 @@ public class PlayerActivity extends AppCompatActivity {
      * Method to go to the next song
      */
     private void doNext(){
-        if(currentSongIndex < songs.size() - 1)
+        if(currentSongIndex < songList.size() - 1)
             currentSongIndex++;
         else
             currentSongIndex = 0;
@@ -261,8 +258,8 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     private void startNewSong(){
-        int realSongIndex = indexList.get(currentSongIndex);
-        RequestParams params = new RequestParams("searchByID", indexList.get(realSongIndex));
+        int songId = Integer.parseInt(songList.get(currentSongIndex).getId());
+        RequestParams params = new RequestParams("searchByID", songId);
         asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
@@ -286,12 +283,10 @@ public class PlayerActivity extends AppCompatActivity {
     private void doShuffle(){
         if(isShuffled){
             shuffleBtn.setColorFilter(ContextCompat.getColor(getBaseContext(), R.color.disabledElementColor));
-            for(int i = 0; i < indexList.size(); i++){
-                indexList.set(i,i);
-            }
+            Collections.sort(songList);
         } else {
             shuffleBtn.setColorFilter(ContextCompat.getColor(getBaseContext(), R.color.colorAccent));
-            Collections.shuffle(indexList);
+            Collections.shuffle(songList);
         }
 
         // To be sure we start at index 0 when we do next
