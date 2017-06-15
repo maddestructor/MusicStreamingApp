@@ -223,7 +223,7 @@ public class PlayerActivity extends AppCompatActivity {
         asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
-                isPlaying = !isPlaying;
+                isPlaying = true;
                 updatePlayPauseBtn();
 
                 Song song = new Gson().fromJson(responseBody.toString(), Song.class);
