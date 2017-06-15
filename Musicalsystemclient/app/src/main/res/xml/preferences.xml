@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="pref_ip"
+        android:title="@string/pref_ip"
+        android:summary="@string/pref_ip_summary"
+        android:defaultValue="@string/pref_ip_default"/>
+
+    <EditTextPreference
+        android:key="pref_port"
+        android:title="@string/pref_port"
+        android:summary="@string/pref_port_summary"
+        android:defaultValue="@string/pref_port_default" />
+
+    <CheckBoxPreference
+        android:key="pref_streaming"
+        android:title="@string/pref_streaming"
+        android:summary="@string/pref_streaming_summary"
+        android:defaultValue="false"
+        />
+</PreferenceScreen>

@@ -2,7 +2,10 @@ package hellindustries.musicalsystemclient;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,7 +14,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -64,13 +66,19 @@ public class PlayerActivity extends AppCompatActivity {
     private int currentTime = 0;
     private Handler handler;
     private Runnable updateProgressionRunnable;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefsListener;
 
+    private String ip;
+    private String port;
+    private String basicGetUri;
 
     public final static String STREAMING_STRING = "streaming";
     public final static String STANDARD_STRING = "standard";
     public final static String PLAY_TYPE = "playingType";
+    private final String PREF_IP = "pref_ip";
+    private final String PREF_PORT = "pref_port";
+    private final String PREF_STREAMING = "pref_streaming";
     private final int ONE_SECOND_IN_MILLIS = 1000;
-    private final String BASIC_GET_URI = "http://192.168.43.1:9000/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +94,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         // Initiate some variables
         asyncHttpClient = new AsyncHttpClient();
+        songList = new ArrayList<>();
         handler = new Handler();
         updateProgressionRunnable = new Runnable() {
             @Override
@@ -94,10 +103,10 @@ public class PlayerActivity extends AppCompatActivity {
             }
         };
 
-        // Get songs list from server
-        songList = new ArrayList<>();
-        this.getSongs();
-
+        // Preferences
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        assignPreferencesValues();
+        setPreferencesListener();
     }
 
     private void getUIComponents() {
@@ -166,9 +175,43 @@ public class PlayerActivity extends AppCompatActivity {
         settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent();
+                intent.setClass(PlayerActivity.this, MuscialSystemClientPreferenceActivity.class);
+                startActivityForResult(intent, 0);
             }
         });
+    }
+
+    private void assignPreferencesValues() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        ip = sharedPreferences.getString(PREF_IP, getResources().getString(R.string.pref_ip_default));
+        port = sharedPreferences.getString(PREF_PORT, getResources().getString(R.string.pref_port_default));
+        isStreaming = sharedPreferences.getBoolean(PREF_STREAMING, false);
+        updateBasicGetUri();
+    }
+
+    private void setPreferencesListener(){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        prefsListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                switch (key){
+                    case PREF_IP:
+                        ip = sharedPreferences.getString(key, getResources().getString(R.string.pref_ip_default));
+                        updateBasicGetUri();
+                        break;
+                    case PREF_PORT:
+                        port = sharedPreferences.getString(key, getResources().getString(R.string.pref_port_default));
+                        updateBasicGetUri();
+                        break;
+                    case PREF_STREAMING:
+                        isStreaming = sharedPreferences.getBoolean(key, false);
+                        doStop();
+                        break;
+                }
+            }
+        };
+        sharedPreferences.registerOnSharedPreferenceChangeListener(prefsListener);
     }
 
 
@@ -185,7 +228,7 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     private void getSongs(){
-        asyncHttpClient.get(BASIC_GET_URI + "songList", new JsonHttpResponseHandler() {
+        asyncHttpClient.get(basicGetUri + "songList", new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 for(int i = 0; i < response.length(); i++){
@@ -205,13 +248,10 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-
-
     /**
      * Method that do play or do pause
      */
     private void doPlayPause(){
-        isStreaming = true;
         if(isStreaming){
             if(mediaPlayer == null){
                 streamRequest();
@@ -228,7 +268,7 @@ public class PlayerActivity extends AppCompatActivity {
             }
         } else {
             asyncHttpClient.addHeader(PLAY_TYPE, STANDARD_STRING);
-            asyncHttpClient.get(BASIC_GET_URI + "playpause", new JsonHttpResponseHandler() {
+            asyncHttpClient.get(basicGetUri + "playpause", new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
                     isPlaying = !isPlaying;
@@ -249,7 +289,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     private void streamRequest() {
         asyncHttpClient.addHeader(PLAY_TYPE, STREAMING_STRING);
-        asyncHttpClient.get(BASIC_GET_URI + "playpause", new JsonHttpResponseHandler() {
+        asyncHttpClient.get(basicGetUri + "playpause", new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
 
@@ -263,7 +303,7 @@ public class PlayerActivity extends AppCompatActivity {
 
             }
         });
-        prepareMediaPlayer(BASIC_GET_URI + "playpause");
+        prepareMediaPlayer(basicGetUri + "playpause");
     }
 
     /**
@@ -291,18 +331,10 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void doStop() {
-        asyncHttpClient.get(BASIC_GET_URI + "stop", new AsyncHttpResponseHandler() {
+        asyncHttpClient.get(basicGetUri + "stop", new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                // Update play pause state
-                isPlaying = false;
-                updatePlayPauseBtn();
-                playPauseProgression();
-
-                // Reset current time and seekbar
-                currentTime = 0;
-                currentTimeTxt.setText(millisToStringTimer(0));
-                seekbar.setProgress(0);
+                resetUI();
             }
 
             @Override
@@ -312,11 +344,23 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
+    private void resetUI(){
+        // Update play pause state
+        isPlaying = false;
+        updatePlayPauseBtn();
+        playPauseProgression();
+
+        // Reset current time and seekbar
+        currentTime = 0;
+        currentTimeTxt.setText(millisToStringTimer(0));
+        seekbar.setProgress(0);
+    }
+
 
     private void startNewSong(){
         int songId = Integer.parseInt(songList.get(currentSongIndex).getId());
         RequestParams params = new RequestParams("searchByID", songId);
-        asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
+        asyncHttpClient.get(basicGetUri + "playpause", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
                 currentTime = 0;
@@ -362,6 +406,11 @@ public class PlayerActivity extends AppCompatActivity {
     /**
      * Updaters section
      */
+
+    private void updateBasicGetUri(){
+        basicGetUri = "http://" + ip + ":" + port + "/";
+        this.getSongs();
+    }
 
     private void updateSongInfos(){
         this.songNameTxt.setText(currentSong.getTitle());

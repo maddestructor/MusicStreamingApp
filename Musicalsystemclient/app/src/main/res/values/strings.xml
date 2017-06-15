@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Musical system client</string>
+
+    <string name="pref_ip">Server IP</string>
+    <string name="pref_ip_summary">Enter your server IP</string>
+    <string name="pref_ip_default">192.168.0.1</string>
+    <string name="pref_port">Port</string>
+    <string name="pref_port_summary">Enter your server port</string>
+    <string name="pref_port_default">8080</string>
+    <string name="pref_streaming">Stream audio</string>
+    <string name="pref_streaming_summary">Check if you want to stream your music from server</string>
 </resources>
