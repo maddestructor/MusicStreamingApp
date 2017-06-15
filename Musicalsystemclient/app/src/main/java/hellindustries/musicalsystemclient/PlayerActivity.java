@@ -1,6 +1,7 @@
 package hellindustries.musicalsystemclient;
 
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -20,6 +21,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import cz.msebera.android.httpclient.Header;
@@ -44,9 +46,11 @@ public class PlayerActivity extends AppCompatActivity {
     AsyncHttpClient asyncHttpClient;
 
     private ArrayList<Song> songs;
+    private ArrayList<Integer> indexList;
     private Song currentSong;
     private int currentSongIndex = 0;
     private boolean isPlaying = false;
+    private boolean isShuffled = false;
     private int currentTime = 0;
     private Handler handler;
     private Runnable updateProgressionRunnable;
@@ -82,6 +86,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         // Get songs list from server
         songs = new ArrayList<>();
+        indexList = new ArrayList<>();
         this.getSongs();
     }
 
@@ -125,7 +130,7 @@ public class PlayerActivity extends AppCompatActivity {
         shuffleBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                doShuffle();
             }
         });
         repeatBtn.setOnClickListener(new View.OnClickListener() {
@@ -169,6 +174,7 @@ public class PlayerActivity extends AppCompatActivity {
                     try {
                         Song song = new Gson().fromJson(response.getString(i), Song.class);
                         songs.add(song);
+                        indexList.add(i);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -245,7 +251,8 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     private void startNewSong(){
-        RequestParams params = new RequestParams("searchByID", currentSongIndex);
+        int realSongIndex = indexList.get(currentSongIndex);
+        RequestParams params = new RequestParams("searchByID", indexList.get(realSongIndex));
         asyncHttpClient.get(BASIC_GET_URI + "playpause", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject responseBody) {
@@ -265,6 +272,26 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void doShuffle(){
+        if(isShuffled){
+            shuffleBtn.setColorFilter(ContextCompat.getColor(getBaseContext(), R.color.disabledElementColor));
+            for(int i = 0; i < indexList.size(); i++){
+                indexList.set(i,i);
+            }
+        } else {
+            shuffleBtn.setColorFilter(ContextCompat.getColor(getBaseContext(), R.color.colorAccent));
+            Collections.shuffle(indexList);
+        }
+
+        // To be sure we start at index 0 when we do next
+        currentSongIndex = -1;
+        isShuffled = !isShuffled;
+    }
+
+    /**
+     * Updaters section
+     */
 
     private void updateSongInfos(){
         this.songNameTxt.setText(currentSong.getTitle());
