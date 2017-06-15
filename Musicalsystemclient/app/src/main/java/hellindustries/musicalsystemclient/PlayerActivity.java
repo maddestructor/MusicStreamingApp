@@ -52,6 +52,7 @@ public class PlayerActivity extends AppCompatActivity {
     private int currentSongIndex = 0;
     private boolean isPlaying = false;
     private boolean isShuffled = false;
+    private boolean isRepeating = false;
     private int currentTime = 0;
     private Handler handler;
     private Runnable updateProgressionRunnable;
@@ -137,7 +138,7 @@ public class PlayerActivity extends AppCompatActivity {
         repeatBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                doRepeat();
             }
         });
         listBtn.setOnClickListener(new View.OnClickListener() {
@@ -298,6 +299,15 @@ public class PlayerActivity extends AppCompatActivity {
         isShuffled = !isShuffled;
     }
 
+    private void doRepeat(){
+        if(isRepeating)
+            repeatBtn.setColorFilter(ContextCompat.getColor(getBaseContext(), R.color.disabledElementColor));
+        else
+            repeatBtn.setColorFilter(ContextCompat.getColor(getBaseContext(), R.color.colorAccent));
+
+        isRepeating = !isRepeating;
+    }
+
     /**
      * Updaters section
      */
@@ -335,6 +345,10 @@ public class PlayerActivity extends AppCompatActivity {
         // If the song is finished
         if(currentTime >= Integer.parseInt(currentSong.getDuration())){
             handler.removeCallbacks(updateProgressionRunnable);
+            
+            if(isRepeating)
+                currentSongIndex --;
+
             doNext();
         }
 
